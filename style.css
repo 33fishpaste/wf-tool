@@ -1,0 +1,521 @@
+/* =================================================
+   Global Design Tokens
+   -------------------------------------------------
+   Centralized variables for colors, spacing, and
+   stacking contexts. Adjust here to theme the UI.
+   ================================================= */
+:root {
+  /* Sizing */
+  --sidebar-width: 260px;
+
+  /* Palette */
+  --color-bg-main: #121212;
+  --color-bg-side: #212121;
+  --color-bg-card: #1e1e1e;
+  --color-bg-darker: #333333;
+  --color-bg-darkest: #1e1e1e;
+  --color-fg: #fafafa;
+  --color-fg-muted: #bbbbbb;
+  --color-accent: #4caf50;
+
+  /* Borders & Radius */
+  --radius-s: .4rem;
+  --radius-m: .6rem;
+  --radius-l: .75rem;
+
+  /* Z‑index Layers (higher = on top) */
+  --z-hamburger: 1100;
+  --z-tooltip: 1200;
+  --z-sidebar: 900;
+  --z-backdrop: 850;          /* ← 追加 */
+}
+
+/* =================================================
+   Base & Resets
+   ================================================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg-main);
+  color: var(--color-fg);
+  overflow-x: hidden;
+}
+
+/* =================================================
+   Layout: Hamburger Button & Sidebar
+   ================================================= */
+#hamburger {
+  /* 右上 & 透明背景 (アイコンはSVG側で描画) */
+  position: fixed;
+  top: 1rem;
+  right: 1rem;      /* ← left を right に変更 */
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: var(--z-hamburger);
+}
+
+/* ── SVG アニメーション ─────────────────── */
+#hamburger .hamburger-morph__line {
+  fill: none;
+  stroke: #fff;                 /* ← 白色指定 */
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dasharray .6s cubic-bezier(.4,0,.2,1),
+              stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);
+}
+#hamburger .hamburger-morph__line:nth-child(1){ stroke-dasharray:60 207; }
+#hamburger .hamburger-morph__line:nth-child(2){ stroke-dasharray:60 60;  }
+#hamburger .hamburger-morph__line:nth-child(3){ stroke-dasharray:60 207; }
+
+#hamburger.active .hamburger-morph__line:nth-child(1) {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
+}
+#hamburger.active .hamburger-morph__line:nth-child(2) {
+  stroke-dasharray: 1 60;
+  stroke-dashoffset: -30;
+}
+#hamburger.active .hamburger-morph__line:nth-child(3) {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
+}
+
+/* Sidebar */
+#sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-width);
+  padding-top: calc(3.5rem + 0.25rem); /* hamburger height + gap */
+  background: rgba(33, 33, 33, .10);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(8px); /* Safari */  overflow-y: auto;
+  z-index: var(--z-sidebar);
+  transition: transform .3s ease;
+  transform: translateX(0); /* open (desktop default) */
+}
+#sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+/* Responsive behaviour */
+@media (max-width: 767px) {
+  #sidebar { transform: translateX(-100%); }
+  body.menu-open #sidebar { transform: translateX(0); }
+}
+@media (min-width: 768px) {
+  /* 本体 (main) も滑らかにスライドさせる */
+  main { transition: margin-left .3s ease; }
+  body.menu-open main { margin-left: var(--sidebar-width); }
+}
+
+/* =================================================
+   Main Content Area
+   ================================================= */
+main {
+  flex: 1 1 auto;
+  padding: 3.5rem 1.5rem 2rem;
+  overflow-y: auto;
+}
+
+/* =================================================
+   Controls Bar
+   ================================================= */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+#controls input[type="text"] {
+  flex: 1 1 220px;
+  min-width: 140px;
+}
+
+/* =================================================
+   Tables & Checklist
+   ================================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+th,
+td {
+  padding: .5rem .75rem;
+  border-bottom: 1px solid #333;
+  vertical-align: top;
+}
+th {
+  text-align: left;
+  background: var(--color-bg-card);
+}
+input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  transform: scale(1.2);
+}
+select,
+input[type="text"],
+textarea {
+  background: var(--color-bg-card);
+  border: 1px solid #444;
+  color: var(--color-fg);
+  padding: .25rem .5rem;
+  border-radius: var(--radius-s);
+}
+textarea {
+  resize: vertical;
+  width: 100%;
+}
+
+/* Description rows inside checklist */
+.desc-row td {
+  font-size: .85rem;
+  color: var(--color-fg-muted);
+  white-space: pre-line;
+  border-bottom: none;
+}
+
+/* =================================================
+   Icon Buttons (reuse across components)
+   ================================================= */
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--color-fg);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+.icon-btn:hover {
+  color: var(--color-accent);
+}
+
+/* =================================================
+   Build Cards (grid layout)
+   ================================================= */
+.build-grid { display: block; }
+
+.build-card {
+  width: 100%;
+  background: var(--color-bg-card);
+  padding: 1rem;
+  border-radius: var(--radius-l);
+  box-shadow: 0 2px 6px rgb(0 0 0 / .6);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.build-header {
+  font-size: 1.1rem;
+  margin-bottom: .5rem;
+  word-break: break-all;
+}
+
+.build-line {
+  display: flex;
+  gap: .5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin: .25rem 0;
+}
+.build-line .desc {
+  flex-basis: 100%;
+  margin-left: 2rem;
+  font-size: .8rem;
+  color: var(--color-fg-muted);
+  white-space: pre-line;
+}
+
+.note {
+  margin-top: .5rem;
+  font-size: .85rem;
+  white-space: pre-line;
+}
+
+/* Action buttons within card */
+.btn-row {
+  display: flex;
+  gap: .25rem;
+  justify-content: flex-end; /* 右寄せ */
+  margin-bottom: .4rem;      /* タイトルとの間隔 */
+}
+.btn-row button {
+  background: none;
+  border: none;
+  color: var(--color-fg);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.btn-row button:hover { color: var(--color-accent); }
+
+.view.hidden,
+.edit.hidden { display: none; }
+
+.form-row {
+  display: flex;
+  gap: .5rem;
+  margin: .25rem 0;
+}
+.form-row label { min-width: 70px; }
+.form-row input { flex: 1; }
+
+#add-build {
+  width: 100%;
+  margin-top: 1rem;
+  padding: .65rem 1rem;
+  border: none;
+  border-radius: var(--radius-m);
+  background: var(--color-accent);
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+#add-build:hover { opacity: .9; }
+
+/* ===== Build 用ボタン (#paste-build) ==================== */
+#paste-build{
+  width: 100%;
+  margin-top: .5rem;
+  padding: .65rem 1rem;
+  border: none;
+  border-radius: var(--radius-m);
+  background: #03a9f4;          /* ← New Build と同デザイン・色だけ変更 */
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+#paste-build:hover{opacity:.9}
+
+/* ===== Build-card 詳細表示トグル ======================== */
+.build-card .desc{display:none;}         /* デフォルト非表示 */
+.build-card.show-details .desc{display:block;}
+
+
+/* =================================================
+   Menu Items & Icons
+   ================================================= */
+.menu-item {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem; /* ~16px */
+}
+
+.dmg-icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+}
+
+/* =================================================
+   Mobile‑only Details Checkbox
+   ================================================= */
+.mobile-detail { display: inline-block; }
+@media (min-width: 768px) {
+  .mobile-detail { display: none; }
+}
+
+/* =================================================
+   Tooltip (shared component)
+   ================================================= */
+#tooltip {
+  position: absolute;
+  max-width: 260px;
+  background: var(--color-bg-darker);
+  color: var(--color-fg);
+  padding: .75rem 1rem;
+  border-radius: var(--radius-m);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .75);
+  font-size: .85rem;
+  line-height: 1.35;
+  z-index: var(--z-tooltip);
+  display: none;
+}
+#tooltip.visible { display: block; }
+
+.tooltip-trigger {
+  text-decoration: underline dotted 1px;
+  cursor: pointer;
+}
+
+/* Table‑style tooltip layout */
+#tooltip table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: .5rem;
+}
+#tooltip td {
+  padding: 2px 0;
+  vertical-align: top;
+}
+#tooltip td.h {
+  font-weight: bold;
+  padding-right: .5em;
+  white-space: nowrap;
+}
+#tooltip .desc {
+  white-space: pre-line;
+}
+
+/* 補助カラムを縦並びで見せる行 */
+.extra-row td {
+  font-size: .85rem;
+  color: var(--color-fg-muted);
+  white-space: pre-line;
+  border-bottom: none;
+}
+.extra-row .h {          /* ラベル部分を軽く強調 */
+  font-weight: bold;
+  margin-right: .5em;
+}
+
+
+.extra-row table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.extra-row td {
+  padding: 2px 0;
+  vertical-align: top;
+}
+.extra-row td.h {
+  font-weight: bold;
+  padding-right: .5em;
+  white-space: nowrap;
+}
+
+/* ── Mobile (< 768 px) 専用調整 ───────────────────── */
+@media (max-width: 767px) {
+  /* desc 行を extra-row と同じ位置から始める */
+  .desc-row td {
+    padding-left: 0px;   /* 必要に応じて 0〜4px で微調整 */
+  }
+}
+
+/* ────────────────────────────────
+   ① スマホ (<768 px) では検索欄を1行占有させ、
+      すぐ下の行に各チェックボックスを並べる
+   ────────────────────────────────*/
+@media (max-width: 767px) {
+  /* 検索ボックスを100%幅で固定して改行を発生させる */
+  #controls input[type="text"] {
+    flex: 0 0 100%;
+  }
+}
+
+/* ────────────────────────────────
+   ② チェックボックス列の幅を固定（PC/スマホ共通）
+   ────────────────────────────────*/
+table th:first-child,
+table td:first-child {
+  width: 44px;          /* 好みで 36–48px 程度に調整 */
+  min-width: 44px;
+}
+
+/*──────────────────────────────
+  RARITY COLOR MAPPING
+  ──────────────────────────────*/
+:root {
+  --rarity-common:     #c79989;   /* お好みで変更 */
+  --rarity-uncommon:   #bec0c2;
+  --rarity-rare:       #fbecc4;
+  --rarity-legendary:  #dfdfdf;
+}
+
+/* 行に付く .rarity‑xxx クラスで文字色を指定 */
+tr.rarity-common    { color: var(--rarity-common); }
+tr.rarity-uncommon  { color: var(--rarity-uncommon); }
+tr.rarity-rare      { color: var(--rarity-rare); }
+tr.rarity-legendary { color: var(--rarity-legendary); }
+
+/*──────────────────────────────
+  Row slide‑in animation
+  ──────────────────────────────*/
+@keyframes slide-in-from-left {
+  from { transform: translateX(-40px); opacity: 0; }
+  to   { transform: translateX(0);      opacity: 1; }
+}
+.slide-row {
+  opacity: 0;                     /* 初期は非表示 */
+  animation: slide-in-from-left 0.5s ease forwards;
+}
+
+/*──────────────────────────────
+  Backdrop (mobile) – fade both ways
+  ──────────────────────────────*/
+#backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  opacity: 0;
+  visibility: hidden;             /* ← 最終的に非表示 */
+  transition:
+    opacity   .3s ease,
+    visibility 0s linear .3s;     /* ← 0.3s 後に切替 */
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(2px); /* Safari */
+  z-index: var(--z-backdrop);
+  pointer-events: none;
+}
+body.menu-open #backdrop{
+  opacity: 1;
+  visibility: visible;            /* すぐ表示 */
+  transition: opacity .3s ease;   /* visibility は即時 */
+  pointer-events: auto;
+}
+@media (min-width:768px){
+  #backdrop{display:none;}         /* PC では常に非表示 */
+}
+
+/* Wish‑list slider */
+.wish-range{
+  /* ===== design tokens (カスタマイズ可) ===== */
+  --c: #ffffff; /* アクティブ色をテーマ色に合わせる */
+  --g: 3px;   /* 右側グレー領域のギャップ */
+  --l: 3px;   /* 進捗ラインの太さ */
+  --s: 10px;  /* 親指サイズ */
+
+  width: 160px;            /* スライダー横幅。お好みで */
+  height: var(--s);        /* Firefox 用に高さ必須 */
+
+  /* ---- 内部計算用 ---- */
+  --_c: color-mix(in srgb, var(--c), #000 var(--p,0%));
+
+  -webkit-appearance: none;
+  -moz-appearance:    none;
+  appearance:         none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  vertical-align: middle;
+  margin: 0 .5rem;
+}
+
+/* ── hover / focus ───────────────────────────── */
+.wish-range:focus-visible,
+.wish-range:hover{ --p: 25%; }           /* 濃さを 25% UP */
+.wish-range:active,
+.wish-range:focus-visible{ --_b: var(--s); }  /* thumb 内側を塗りつぶし */
+
+/* ── Chromium系 Thumb ───────────────────────── */
+.wish-range::-webkit-slider-thumb{
+  height: var(--s);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 var(--_b,var(--l)) inset var(--_c);
+  border-image: linear-gradient(90deg,var(--_c) 50%,#898989 0)
+                0 1/calc(50% - var(--l)/2) 100vw/0 calc(100vw + var(--g));
+  -webkit-appearance: none;
+  appearance: none;
+  transition: .3s;
+}
